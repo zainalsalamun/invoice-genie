@@ -1,19 +1,23 @@
 import { Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TemplateType } from "@/types/invoice";
+import { Translations } from "@/lib/i18n";
 
 interface TemplateSelectorProps {
   selectedTemplate: TemplateType;
   accentColor: string;
   onSelectTemplate: (template: TemplateType) => void;
   onSelectColor: (color: string) => void;
+  t: Translations;
 }
 
-const templates: { id: TemplateType; name: string; description: string }[] = [
-  { id: 'minimal', name: 'Minimal', description: 'Clean and simple' },
-  { id: 'modern', name: 'Modern', description: 'Bold and contemporary' },
-  { id: 'creative', name: 'Creative', description: 'Unique and artistic' },
-  { id: 'corporate', name: 'Corporate', description: 'Professional and formal' },
+const getTemplates = (t: Translations): { id: TemplateType; name: string; description: string }[] => [
+  { id: 'minimal', name: t.minimal, description: 'Clean & simple' },
+  { id: 'modern', name: t.modern, description: 'Bold & contemporary' },
+  { id: 'creative', name: t.creative, description: 'Unique & artistic' },
+  { id: 'corporate', name: t.corporate, description: 'Professional & formal' },
+  { id: 'elegant', name: t.elegant, description: 'Sophisticated & refined' },
+  { id: 'bold', name: t.bold, description: 'Strong & impactful' },
 ];
 
 const colors = [
@@ -25,6 +29,8 @@ const colors = [
   '#ec4899', // pink
   '#14b8a6', // teal
   '#6366f1', // indigo
+  '#84cc16', // lime
+  '#f97316', // orange
 ];
 
 const TemplateSelector = ({
@@ -32,11 +38,14 @@ const TemplateSelector = ({
   accentColor,
   onSelectTemplate,
   onSelectColor,
+  t,
 }: TemplateSelectorProps) => {
+  const templates = getTemplates(t);
+
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Template & Style</CardTitle>
+        <CardTitle className="text-lg">{t.templateStyle}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Templates */}
@@ -64,7 +73,7 @@ const TemplateSelector = ({
 
         {/* Color Picker */}
         <div>
-          <p className="mb-3 text-sm font-medium">Accent Color</p>
+          <p className="mb-3 text-sm font-medium">{t.accentColor}</p>
           <div className="flex flex-wrap gap-2">
             {colors.map((color) => (
               <button

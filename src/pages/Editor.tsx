@@ -51,8 +51,11 @@ import { formatCurrency, calculateDocumentTotals } from "@/lib/formatters";
 import { openWhatsApp, openEmail, copyShareLink } from "@/lib/sharing";
 import { useToast } from "@/hooks/use-toast";
 import { v4 as uuidv4 } from "uuid";
+import { getTranslation, Language } from "@/lib/i18n";
 import DocumentPreview from "@/components/DocumentPreview";
 import TemplateSelector from "@/components/TemplateSelector";
+import LogoUpload from "@/components/LogoUpload";
+import LanguageSelector from "@/components/LanguageSelector";
 
 const Editor = () => {
   const { id } = useParams();
@@ -64,6 +67,8 @@ const Editor = () => {
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(defaultBusinessProfile);
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("edit");
+
+  const t = getTranslation(document?.language || 'id');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -165,14 +170,14 @@ const Editor = () => {
       await html2pdf().set(opt).from(element).save();
       
       toast({
-        title: "PDF downloaded",
-        description: "Your document has been exported.",
+        title: "PDF berhasil diunduh",
+        description: "Dokumen Anda telah diekspor.",
       });
     } catch (error) {
       console.error('PDF export error:', error);
       toast({
-        title: "Export failed",
-        description: "There was an error exporting the PDF.",
+        title: "Ekspor gagal",
+        description: "Terjadi kesalahan saat mengekspor PDF.",
         variant: "destructive",
       });
     }
@@ -182,8 +187,8 @@ const Editor = () => {
     if (!document) return;
     if (!document.customer.phone) {
       toast({
-        title: "Phone number required",
-        description: "Please add a customer phone number to share via WhatsApp.",
+        title: "Nomor telepon diperlukan",
+        description: "Tambahkan nomor telepon pelanggan untuk berbagi via WhatsApp.",
         variant: "destructive",
       });
       return;
@@ -201,8 +206,8 @@ const Editor = () => {
     const success = await copyShareLink(document);
     if (success) {
       toast({
-        title: "Link copied",
-        description: "Share link has been copied to clipboard.",
+        title: "Link disalin",
+        description: "Link berbagi telah disalin ke clipboard.",
       });
     }
   };
@@ -228,8 +233,8 @@ const Editor = () => {
     }
     
     toast({
-      title: "Converted to Invoice",
-      description: `Invoice ${invoiceDoc.number} has been created.`,
+      title: "Dikonversi ke Faktur",
+      description: `Faktur ${invoiceDoc.number} telah dibuat.`,
     });
     
     navigate(`/editor/${invoiceDoc.id}`);
@@ -238,25 +243,36 @@ const Editor = () => {
   if (!document) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">Memuat...</div>
       </div>
     );
   }
 
   const renderForm = () => (
     <div className="space-y-6 p-6">
+      {/* Language Selector */}
+      <Card>
+        <CardContent className="pt-6">
+          <LanguageSelector
+            language={document.language || 'id'}
+            onLanguageChange={(lang) => updateDocument({ language: lang })}
+            label={t.language}
+          />
+        </CardContent>
+      </Card>
+
       {/* Document Type & Status */}
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <FileText className="h-5 w-5" />
-            Document Info
+            {t.documentInfo}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Document Type</Label>
+              <Label>{t.documentType}</Label>
               <Select
                 value={document.type}
                 onValueChange={(value: DocumentType) => {
@@ -270,13 +286,13 @@ const Editor = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="quotation">Quotation</SelectItem>
+                  <SelectItem value="invoice">{document.language === 'id' ? 'Faktur' : 'Invoice'}</SelectItem>
+                  <SelectItem value="quotation">{document.language === 'id' ? 'Penawaran' : 'Quotation'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t.status}</Label>
               <Select
                 value={document.status}
                 onValueChange={(value: DocumentStatus) => updateDocument({ status: value })}
@@ -285,16 +301,16 @@ const Editor = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="draft">{t.draft}</SelectItem>
+                  <SelectItem value="sent">{t.sent}</SelectItem>
                   {document.type === 'quotation' && (
-                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="approved">{t.approved}</SelectItem>
                   )}
                   {document.type === 'invoice' && (
                     <>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="pending">{t.pending}</SelectItem>
+                      <SelectItem value="paid">{t.paid}</SelectItem>
+                      <SelectItem value="overdue">{t.overdue}</SelectItem>
                     </>
                   )}
                 </SelectContent>
@@ -303,14 +319,14 @@ const Editor = () => {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Document Number</Label>
+              <Label>{t.documentNumber}</Label>
               <Input
                 value={document.number}
                 onChange={(e) => updateDocument({ number: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>Issue Date</Label>
+              <Label>{t.issueDate}</Label>
               <Input
                 type="date"
                 value={document.issueDate}
@@ -319,7 +335,7 @@ const Editor = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>{document.type === 'invoice' ? 'Due Date' : 'Valid Until'}</Label>
+            <Label>{document.type === 'invoice' ? t.dueDate : t.validUntil}</Label>
             <Input
               type="date"
               value={document.dueDate}
@@ -333,7 +349,7 @@ const Editor = () => {
               onClick={handleConvertToInvoice}
             >
               <RefreshCw className="h-4 w-4" />
-              Convert to Invoice
+              {t.convertToInvoice}
             </Button>
           )}
         </CardContent>
@@ -344,30 +360,41 @@ const Editor = () => {
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Building2 className="h-5 w-5" />
-            Your Business
+            {t.yourBusiness}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Logo Upload */}
+          <LogoUpload
+            logo={businessProfile.logo}
+            onLogoChange={(logo) => updateBusinessProfile({ logo })}
+            labels={{
+              logo: t.logo,
+              uploadLogo: t.uploadLogo,
+              removeLogo: t.removeLogo,
+            }}
+          />
+          
           <div className="space-y-2">
-            <Label>Business Name</Label>
+            <Label>{t.businessName}</Label>
             <Input
-              placeholder="Your Business Name"
+              placeholder={t.businessName}
               value={businessProfile.name}
               onChange={(e) => updateBusinessProfile({ name: e.target.value })}
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>{t.email}</Label>
               <Input
                 type="email"
-                placeholder="email@business.com"
+                placeholder="email@bisnis.com"
                 value={businessProfile.email}
                 onChange={(e) => updateBusinessProfile({ email: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>Phone</Label>
+              <Label>{t.phone}</Label>
               <Input
                 placeholder="+62 812 3456 7890"
                 value={businessProfile.phone}
@@ -376,9 +403,9 @@ const Editor = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Address</Label>
+            <Label>{t.address}</Label>
             <Textarea
-              placeholder="Business address"
+              placeholder={t.address}
               value={businessProfile.address}
               onChange={(e) => updateBusinessProfile({ address: e.target.value })}
               rows={2}
@@ -386,7 +413,7 @@ const Editor = () => {
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label>Bank Name</Label>
+              <Label>{t.bankName}</Label>
               <Input
                 placeholder="Bank"
                 value={businessProfile.bankName || ''}
@@ -394,7 +421,7 @@ const Editor = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Account Number</Label>
+              <Label>{t.accountNumber}</Label>
               <Input
                 placeholder="1234567890"
                 value={businessProfile.accountNumber || ''}
@@ -402,9 +429,9 @@ const Editor = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Account Name</Label>
+              <Label>{t.accountName}</Label>
               <Input
-                placeholder="Account holder name"
+                placeholder={t.accountName}
                 value={businessProfile.accountName || ''}
                 onChange={(e) => updateBusinessProfile({ accountName: e.target.value })}
               />
@@ -418,15 +445,15 @@ const Editor = () => {
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <User className="h-5 w-5" />
-            Customer
+            {t.customer}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Customer Name</Label>
+              <Label>{t.customerName}</Label>
               <Input
-                placeholder="Customer name"
+                placeholder={t.customerName}
                 value={document.customer.name}
                 onChange={(e) => updateDocument({ 
                   customer: { ...document.customer, name: e.target.value, id: document.customer.id || uuidv4() }
@@ -434,9 +461,9 @@ const Editor = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>Company (optional)</Label>
+              <Label>{t.company} (opsional)</Label>
               <Input
-                placeholder="Company name"
+                placeholder={t.company}
                 value={document.customer.company || ''}
                 onChange={(e) => updateDocument({ 
                   customer: { ...document.customer, company: e.target.value }
@@ -446,10 +473,10 @@ const Editor = () => {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Email</Label>
+              <Label>{t.email}</Label>
               <Input
                 type="email"
-                placeholder="customer@email.com"
+                placeholder="pelanggan@email.com"
                 value={document.customer.email}
                 onChange={(e) => updateDocument({ 
                   customer: { ...document.customer, email: e.target.value }
@@ -457,7 +484,7 @@ const Editor = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label>WhatsApp / Phone</Label>
+              <Label>{t.whatsappPhone}</Label>
               <Input
                 placeholder="+62 812 3456 7890"
                 value={document.customer.phone}
@@ -468,9 +495,9 @@ const Editor = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Address</Label>
+            <Label>{t.address}</Label>
             <Textarea
-              placeholder="Customer address"
+              placeholder={t.address}
               value={document.customer.address}
               onChange={(e) => updateDocument({ 
                 customer: { ...document.customer, address: e.target.value }
@@ -484,14 +511,14 @@ const Editor = () => {
       {/* Items */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Items</CardTitle>
+          <CardTitle className="text-lg">{t.items}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {document.items.map((item, index) => (
             <div key={item.id} className="rounded-lg border p-4">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Item {index + 1}
+                  {t.item} {index + 1}
                 </span>
                 <Button
                   variant="ghost"
@@ -504,18 +531,18 @@ const Editor = () => {
               </div>
               <div className="space-y-3">
                 <Input
-                  placeholder="Item name"
+                  placeholder={`Nama ${t.item.toLowerCase()}`}
                   value={item.name}
                   onChange={(e) => updateItem(item.id, { name: e.target.value })}
                 />
                 <Input
-                  placeholder="Description (optional)"
+                  placeholder="Deskripsi (opsional)"
                   value={item.description}
                   onChange={(e) => updateItem(item.id, { description: e.target.value })}
                 />
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label className="text-xs">Qty</Label>
+                    <Label className="text-xs">{t.qty}</Label>
                     <Input
                       type="number"
                       min="1"
@@ -524,7 +551,7 @@ const Editor = () => {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Price</Label>
+                    <Label className="text-xs">{t.price}</Label>
                     <Input
                       type="number"
                       min="0"
@@ -533,7 +560,7 @@ const Editor = () => {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Subtotal</Label>
+                    <Label className="text-xs">{t.subtotal}</Label>
                     <Input
                       readOnly
                       value={formatCurrency(item.quantity * item.price)}
@@ -546,7 +573,7 @@ const Editor = () => {
           ))}
           <Button variant="outline" className="w-full gap-2" onClick={addItem}>
             <Plus className="h-4 w-4" />
-            Add Item
+            {t.addItem}
           </Button>
         </CardContent>
       </Card>
@@ -554,16 +581,16 @@ const Editor = () => {
       {/* Pricing */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Pricing</CardTitle>
+          <CardTitle className="text-lg">{t.pricing}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between rounded-lg bg-muted p-3">
-            <span>Subtotal</span>
+            <span>{t.subtotal}</span>
             <span className="font-medium">{formatCurrency(document.subtotal)}</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Discount</Label>
+              <Label>{t.discount}</Label>
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -586,7 +613,7 @@ const Editor = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Additional Fee</Label>
+              <Label>{t.additionalFee}</Label>
               <Input
                 type="number"
                 min="0"
@@ -597,8 +624,8 @@ const Editor = () => {
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Tax (PPN)</Label>
-              <p className="text-xs text-muted-foreground">Add {document.taxRate}% tax</p>
+              <Label>{t.tax} (PPN)</Label>
+              <p className="text-xs text-muted-foreground">Tambah {document.taxRate}% pajak</p>
             </div>
             <Switch
               checked={document.taxEnabled}
@@ -606,7 +633,7 @@ const Editor = () => {
             />
           </div>
           <div className="flex items-center justify-between rounded-lg bg-primary p-4 text-primary-foreground">
-            <span className="font-medium">Total</span>
+            <span className="font-medium">{t.total}</span>
             <span className="text-xl font-bold">{formatCurrency(document.total)}</span>
           </div>
         </CardContent>
@@ -615,22 +642,22 @@ const Editor = () => {
       {/* Notes & Terms */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Notes & Terms</CardTitle>
+          <CardTitle className="text-lg">{t.notesTerms}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Notes to Customer</Label>
+            <Label>{t.notesToCustomer}</Label>
             <Textarea
-              placeholder="Thank you for your business!"
+              placeholder={t.thankYou}
               value={document.notes}
               onChange={(e) => updateDocument({ notes: e.target.value })}
               rows={3}
             />
           </div>
           <div className="space-y-2">
-            <Label>Terms & Conditions</Label>
+            <Label>{t.termsConditions}</Label>
             <Textarea
-              placeholder="Payment is due within 30 days..."
+              placeholder={t.paymentDue}
               value={document.terms}
               onChange={(e) => updateDocument({ terms: e.target.value })}
               rows={3}
@@ -645,6 +672,7 @@ const Editor = () => {
         accentColor={document.accentColor}
         onSelectTemplate={(template) => updateDocument({ template })}
         onSelectColor={(color) => updateDocument({ accentColor: color })}
+        t={t}
       />
     </div>
   );
@@ -676,7 +704,7 @@ const Editor = () => {
               <div>
                 <span className="font-semibold">{document.number}</span>
                 <span className="ml-2 text-sm text-muted-foreground capitalize">
-                  ({document.type})
+                  ({document.type === 'invoice' ? t.invoice.toLowerCase() : t.quotation.toLowerCase()})
                 </span>
               </div>
             </div>
@@ -684,19 +712,19 @@ const Editor = () => {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1">
               <LinkIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Copy Link</span>
+              <span className="hidden sm:inline">{t.copyLink}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleShareEmail} className="gap-1">
               <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline">Email</span>
+              <span className="hidden sm:inline">{t.sendEmail}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleShareWhatsApp} className="gap-1">
               <MessageCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">WhatsApp</span>
+              <span className="hidden sm:inline">{t.sendWhatsapp}</span>
             </Button>
             <Button size="sm" onClick={handleExportPDF} className="gap-1">
               <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">PDF</span>
+              <span className="hidden sm:inline">{t.downloadPdf}</span>
             </Button>
           </div>
         </div>
