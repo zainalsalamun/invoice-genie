@@ -1,8 +1,10 @@
+import { Language } from '@/lib/i18n';
+
 export type DocumentType = 'invoice' | 'quotation';
 
 export type DocumentStatus = 'draft' | 'sent' | 'approved' | 'paid' | 'pending' | 'overdue';
 
-export type TemplateType = 'minimal' | 'modern' | 'creative' | 'corporate';
+export type TemplateType = 'minimal' | 'modern' | 'creative' | 'corporate' | 'elegant' | 'bold';
 
 export interface LineItem {
   id: string;
@@ -52,6 +54,7 @@ export interface Document {
   terms: string;
   template: TemplateType;
   accentColor: string;
+  language: Language;
   createdAt: string;
   updatedAt: string;
 }
@@ -100,9 +103,10 @@ export const createEmptyDocument = (type: DocumentType): Document => ({
   additionalFee: 0,
   total: 0,
   notes: '',
-  terms: 'Payment is due within 30 days of invoice date.',
+  terms: 'Pembayaran jatuh tempo dalam 30 hari.',
   template: 'modern',
   accentColor: '#10b981',
+  language: 'id',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
